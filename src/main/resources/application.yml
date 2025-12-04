@@ -1,0 +1,165 @@
+###################################################################
+# 🚗 GARAGEPRO BACKEND - ULTRA FAST CONFIGURATION (FINAL BUILD)
+# Author: Hari — FPTU SE Project | Spring Boot 3.x | MySQL
+# Version: 2.2.0 (HS512 / Undertow / Lazy Init)
+###################################################################
+spring:
+  profiles:
+    active: dev
+  application:
+    name: garagepro-backend
+
+  main:
+    lazy-initialization: true
+    banner-mode: "off"
+    register-shutdown-hook: false
+    cloud-platform: none
+
+  ###################################################################
+  # 🗄️ DATABASE CONFIG - MYSQL
+  ###################################################################
+  datasource:
+    url: jdbc:mysql://localhost:3306/garage_management_system_v4?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true
+    username: root
+    password: 12345678
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      idle-timeout: 10000
+      max-lifetime: 300000
+      connection-timeout: 5000
+      initialization-fail-timeout: -1
+      auto-commit: false
+      register-mbeans: false
+
+  ###################################################################
+  # ⚙️ JPA CONFIG - MYSQL
+  ###################################################################
+  jpa:
+    open-in-view: false
+    show-sql: false
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: false
+        jdbc:
+          lob.non_contextual_creation: true
+          batch_size: 25
+          fetch_size: 50
+        order_inserts: true
+        order_updates: true
+        connection.provider_disables_autocommit: true
+        cache:
+          use_second_level_cache: false
+          use_query_cache: false
+        generate_statistics: false
+        temp.use_jdbc_metadata_defaults: false
+
+  ###################################################################
+  # 🌐 WEB CONFIG
+  ###################################################################
+  web:
+    resources:
+      add-mappings: false
+
+  mvc:
+    async:
+      request-timeout: 30000
+
+  jackson:
+    time-zone: Asia/Ho_Chi_Minh
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+
+  ###################################################################
+  # 🚫 AUTOCONFIGURE EXCLUSION
+  ###################################################################
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+      - org.springframework.boot.autoconfigure.admin.SpringApplicationAdminJmxAutoConfiguration
+      - org.springframework.boot.actuate.autoconfigure.metrics.MetricsAutoConfiguration
+
+###################################################################
+# SERVER CONFIG - UNDERTOW
+###################################################################
+server:
+  port: 8888
+  shutdown: immediate
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,application/json,application/javascript,text/css
+    min-response-size: 1024
+
+  undertow:
+    threads:
+      io: 4
+      worker: 50
+    buffer-size: 1024
+    direct-buffers: true
+    eager-filter-init: true
+
+###################################################################
+# LOGGING
+###################################################################
+logging:
+  level:
+    root: WARN
+    fptu.edu.vn.training: INFO
+    org.springframework.boot.web.embedded: INFO
+    org.springframework.web: INFO
+    io.undertow.websockets.jsr: ERROR
+    org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer: ERROR
+    org.hibernate: ERROR
+    com.zaxxer.hikari: WARN
+  pattern:
+    console: "%clr(%d{HH:mm:ss}){faint} %clr(%-5p) %clr(%-30.30logger{29}){cyan} : %m%n"
+
+###################################################################
+# MANAGEMENT (TẮT TOÀN BỘ)
+###################################################################
+management:
+  endpoints:
+    enabled-by-default: false
+
+###################################################################
+# ☁️ CLOUDINARY CONFIG
+###################################################################
+cloudinary:
+  cloud-name: depslbl6o
+  api-key: 977458715782351
+  api-secret: Xg2Fo2jyEJuv_gbF1nyu-ryMFKk
+
+###################################################################
+# 🔐 JWT CONFIGURATION (HS512 - PRODUCTION READY)
+###################################################################
+jwt:
+  secret: "+8UITIM3CYUYK3CUBONZEOGRUIFGUOJVQFREHGS+MUOBBN8+3SW2EGLMHCHO3VQGDOPQNMBWANHRZ/DSVAZ7KA=="
+  algorithm: HS512
+  access-expiration: 180000      # 3 phút (Access Token)
+  refresh-expiration: 2592000000 # 30 ngày (Refresh Token)
+  issuer: "GARAGEPRO-BACKEND"
+  audience: "GARAGEPRO-USERS"
+
+###################################################################
+# 📖 OPENAPI / SWAGGER CONFIG
+###################################################################
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+app:
+  allowed-email-domains:
+    - gmail.com
+    - fpt.edu.vn
+    - outlook.com
+    - garagepro.vn
