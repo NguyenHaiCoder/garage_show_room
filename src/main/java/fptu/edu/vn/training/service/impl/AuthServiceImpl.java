@@ -25,7 +25,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,6 +33,8 @@ import java.util.stream.Collectors;
 public class AuthServiceImpl implements AuthService {
 
     private final UserAccountRepository userRepo;
+    private final BookingRepository bookingRepo;
+    private final CustomerRepository customerRepo;
     private final OtpVerificationRepository otpRepo;
     private final RoleRepository roleRepo;
     private final EmailServiceImpl emailServiceImpl;
@@ -150,8 +151,30 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse requestLoginOtp(LoginOtpRequest request, HttpServletRequest http) {
         String email = normalizeAndValidateEmail(request.getEmail(), false);
 
-        Users user = userRepo.findByEmail(email)
-                .orElseThrow(() -> new BadRequestException("Email chưa tồn tại trong hệ thống."));
+        Users user = userRepo.findByEmail(email).orElseGet(() -> {
+            BookingCustomerInfo bookingInfo = bookingRepo.findCustomerInfoByEmail(email)
+                    .orElseThrow(() -> new BadRequestException("Email chưa tồn tại trong hệ thống."));
+
+            Role customerRole = roleRepo.findByRoleName(UserRole.CUSTOMER)
+                    .orElseThrow(() -> new BadRequestException("Role CUSTOMER chưa tồn tại trong DB."));
+
+            Users newUser = Users.builder()
+                    .fullName(bookingInfo.getFullName())
+                    .email(bookingInfo.getEmail())
+                    .phone(bookingInfo.getPhone())
+                    .status(UserStatus.ACTIVE)
+                    .role(customerRole)
+                    .build();
+            userRepo.save(newUser);
+
+            Customer customer = customerRepo.findById(bookingInfo.getCustomerId())
+                    .orElseThrow(() -> new BadRequestException("Không tìm thấy customer từ booking."));
+            customer.setUser(newUser);
+            customer.setIsDeleted(0);
+            customerRepo.save(customer);
+
+            return newUser;
+        });
 
         if (user.getStatus() != UserStatus.ACTIVE)
             throw new InvalidUserStatusException("Tài khoản chưa được kích hoạt hoặc đã bị khóa.");
@@ -176,7 +199,6 @@ public class AuthServiceImpl implements AuthService {
                     .createdAt(LocalDateTime.now())
                     .build());
         } catch (DataIntegrityViolationException e) {
-            log.error("Lỗi CSDL khi lưu OTP: {}", e.getMessage());
             throw new BadRequestException("Không thể tạo OTP do dữ liệu không hợp lệ.");
         }
 
@@ -203,8 +225,31 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse verifyLoginOtp(VerifyOtpRequest request) {
         String email = normalizeAndValidateEmail(request.getEmail(), false);
 
-        Users user = userRepo.findByEmail(email)
-                .orElseThrow(() -> new BadRequestException("Email không tồn tại trong hệ thống."));
+        Users user = userRepo.findByEmail(email).orElseGet(() -> {
+            BookingCustomerInfo bookingInfo = bookingRepo.findCustomerInfoByEmail(email)
+                    .orElseThrow(() -> new BadRequestException("Email chưa tồn tại trong hệ thống."));
+
+            Role customerRole = roleRepo.findByRoleName(UserRole.CUSTOMER)
+                    .orElseThrow(() -> new BadRequestException("Role CUSTOMER chưa tồn tại trong DB."));
+
+            Users newUser = Users.builder()
+                    .fullName(bookingInfo.getFullName())
+                    .email(bookingInfo.getEmail())
+                    .phone(bookingInfo.getPhone())
+                    .status(UserStatus.ACTIVE)
+                    .role(customerRole)
+                    .build();
+            userRepo.save(newUser);
+
+            Customer customer = customerRepo.findById(bookingInfo.getCustomerId())
+                    .orElseThrow(() -> new BadRequestException("Không tìm thấy customer từ booking."));
+            customer.setUser(newUser);
+            customer.setIsDeleted(0);
+            customerRepo.save(customer);
+
+            return newUser;
+        });
+
         if (user.getStatus() != UserStatus.ACTIVE)
             throw new InvalidUserStatusException("Tài khoản của bạn chưa được kích hoạt hoặc đã bị khóa.");
 
@@ -255,8 +300,30 @@ public class AuthServiceImpl implements AuthService {
     @Transactional(noRollbackFor = {BadRequestException.class, InvalidUserStatusException.class})
     public AuthResponse refreshToken(String refreshToken) {
         String email = jwtTokenProvider.extractUsername(refreshToken);
-        Users user = userRepo.findByEmail(email)
-                .orElseThrow(() -> new BadRequestException("Token không hợp lệ."));
+        Users user = userRepo.findByEmail(email).orElseGet(() -> {
+            BookingCustomerInfo bookingInfo = bookingRepo.findCustomerInfoByEmail(email)
+                    .orElseThrow(() -> new BadRequestException("Email chưa tồn tại trong hệ thống."));
+
+            Role customerRole = roleRepo.findByRoleName(UserRole.CUSTOMER)
+                    .orElseThrow(() -> new BadRequestException("Role CUSTOMER chưa tồn tại trong DB."));
+
+            Users newUser = Users.builder()
+                    .fullName(bookingInfo.getFullName())
+                    .email(bookingInfo.getEmail())
+                    .phone(bookingInfo.getPhone())
+                    .status(UserStatus.ACTIVE)
+                    .role(customerRole)
+                    .build();
+            userRepo.save(newUser);
+
+            Customer customer = customerRepo.findById(bookingInfo.getCustomerId())
+                    .orElseThrow(() -> new BadRequestException("Không tìm thấy customer từ booking."));
+            customer.setUser(newUser);
+            customer.setIsDeleted(0);
+            customerRepo.save(customer);
+
+            return newUser;
+        });
 
         UserDetails userDetails = new CustomUserDetails(user);
         if (!jwtTokenProvider.isTokenValid(refreshToken, userDetails))
@@ -296,8 +363,30 @@ public class AuthServiceImpl implements AuthService {
             throw new BadRequestException("Token không hợp lệ hoặc đã bị chỉnh sửa.");
         }
 
-        Users user = userRepo.findByEmail(email)
-                .orElseThrow(() -> new BadRequestException("Không tìm thấy người dùng."));
+        Users user = userRepo.findByEmail(email).orElseGet(() -> {
+            BookingCustomerInfo bookingInfo = bookingRepo.findCustomerInfoByEmail(email)
+                    .orElseThrow(() -> new BadRequestException("Email chưa tồn tại trong hệ thống."));
+
+            Role customerRole = roleRepo.findByRoleName(UserRole.CUSTOMER)
+                    .orElseThrow(() -> new BadRequestException("Role CUSTOMER chưa tồn tại trong DB."));
+
+            Users newUser = Users.builder()
+                    .fullName(bookingInfo.getFullName())
+                    .email(bookingInfo.getEmail())
+                    .phone(bookingInfo.getPhone())
+                    .status(UserStatus.ACTIVE)
+                    .role(customerRole)
+                    .build();
+            userRepo.save(newUser);
+
+            Customer customer = customerRepo.findById(bookingInfo.getCustomerId())
+                    .orElseThrow(() -> new BadRequestException("Không tìm thấy customer từ booking."));
+            customer.setUser(newUser);
+            customer.setIsDeleted(0);
+            customerRepo.save(customer);
+
+            return newUser;
+        });
 
         UserDetails userDetails = new CustomUserDetails(user);
         if (!jwtTokenProvider.isTokenValid(token, userDetails))
@@ -437,3 +526,4 @@ public class AuthServiceImpl implements AuthService {
         return String.format("%06d", new Random().nextInt(999999));
     }
 }
+

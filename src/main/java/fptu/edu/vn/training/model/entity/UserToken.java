@@ -4,10 +4,8 @@ import fptu.edu.vn.training.model.enums.TokenStatus;
 import fptu.edu.vn.training.model.enums.TokenType;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Data
 @NoArgsConstructor
