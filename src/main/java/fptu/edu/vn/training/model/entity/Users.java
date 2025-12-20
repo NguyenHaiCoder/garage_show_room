@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.UuidGenerator;
 
 import java.util.List;
 
@@ -40,6 +39,9 @@ public class Users {
     @ManyToOne
     @JoinColumn(name = "role_id")
     private Role role;
+
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+    private Customer customer;
 
     @OneToMany(mappedBy = "user")
     private List<AuditLog> auditLogs;

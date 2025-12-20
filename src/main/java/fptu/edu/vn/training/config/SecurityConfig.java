@@ -34,6 +34,7 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthFilter;
 
     private static final String[] ENDPOINT_WHITELIST = {
+            "/api/auth/login/request-otp",
             "/api/categories/**",
             "/api/parts/**",
             "/api/auth/**",
@@ -71,9 +72,11 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
-                "http://localhost:5173",  // Vue dev server
+                "http://localhost:5173",
+                "http://localhost:5174",  // Vue dev server
                 "http://localhost:8080",  // BE1 (core)
-                "http://localhost:8081",  // FE2
+                "http://localhost:8081",
+                "http://localhost:6868",// BE3 (main flow)
                 "https://garagepro.vn"    // domain production
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
